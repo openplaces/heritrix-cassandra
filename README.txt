@@ -85,6 +85,19 @@ org.archive.io.cassandra.CassandraParameters
  * requestSubColumn (defaults to 'request'): Name of the sub column used to store the request header.
 
 
+Building
+--------
+If you can't find a release that corresponds to your combination of Heritrix and Cassandra versions, then you can build your own version of heritrix-cassandra (granted that the APIs of each application haven't changed dramatically).
+
+1) Obtain the heritrix-cassandra source by visiting http://github.com/openplaces/heritrix-cassandra
+
+2) Create a new folder in **lib** (e.g. cassandra-0.*.* or heritrix-3.*.*) containing all the necessary dependencies. Check the existing folders for the required jars.
+
+3) Edit build.xml and change the properties "version", "cassandra-version", "heritrix-version" accordingly.
+
+4) Run "ant" in the command line, and your new jar should be in the **target** folder.
+
+
 Releases
 --------
 
