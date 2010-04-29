@@ -25,6 +25,11 @@ import org.archive.io.ReplayInputStream;
 import org.archive.io.WriterPoolMember;
 import org.archive.modules.CrawlURI;
 
+/**
+ * Cassandra implementation for Heritrix writing.
+ *
+ * @author greglu
+ */
 public class CassandraWriter extends WriterPoolMember {
 
 	private final Logger LOG = Logger.getLogger(this.getClass().getName());
@@ -56,9 +61,9 @@ public class CassandraWriter extends WriterPoolMember {
 		if (seeds != null && seeds.length > 0) {
 			seed = seeds[new Random().nextInt(seeds.length)];
 		} else throw new RuntimeException("No seeds found in configuration.");
-LOG.info("SEED: " + seed + " PORT: " + cassandraPort);
+
 		_socket = new TSocket(seed, cassandraPort);
-LOG.info("Initialized socket");
+
 		TBinaryProtocol binaryProtocol = new TBinaryProtocol(_socket, false, false);
 
 		_client = new Cassandra.Client(binaryProtocol);

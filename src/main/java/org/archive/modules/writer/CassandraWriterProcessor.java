@@ -20,6 +20,45 @@ import org.archive.modules.CrawlURI;
 import org.archive.modules.ProcessResult;
 import org.archive.util.ArchiveUtils;
 
+/**
+ * A <a href="http://crawler.archive.org">Heritrix 3</a> processor that writes
+ * to <a href="http://cassandra.apache.org/">Cassandra</a>.
+ *
+ * The following example shows how to configure the crawl job configuration.
+ *
+ * <pre>
+ * {@code
+ * <!-- DISPOSITION CHAIN -->
+ * <bean id="cassandraParameters" class="org.archive.io.cassandra.CassandraParameters">
+ *   <property name="keyspace" value="MyApplication" />
+ *   <property name="crawlColumnFamily" value="crawled_pages" />
+ * </bean>
+ *
+ * <bean id="cassandraWriterProcessor" class="org.archive.modules.writer.CassandraWriterProcessor">
+ *   <property name="cassandraServers" value="localhost,127.0.0.1" />
+ *   <property name="cassandraPort" value="9160" />
+ *   <property name="cassandraParameters">
+ *     <bean ref="cassandraParameters" />
+ *   </property>
+ * </bean>
+ *
+ * <bean id="dispositionProcessors" class="org.archive.modules.DispositionChain">
+ *   <property name="processors">
+ *     <list>
+ *     <!-- write to aggregate archival files... -->
+ *     <ref bean="cassandraWriterProcessor"/>
+ *     <!-- other references -->
+ *     </list>
+ *   </property>
+ * </bean>
+ * }
+ * </pre>
+ *
+ * @see org.archive.io.cassandra.CassandraParameters {@link org.archive.io.cassandra.CassandraParameters}
+ *  for defining cassandraParameters
+ *
+ * @author greg
+ */
 public class CassandraWriterProcessor extends WriterPoolProcessor {
 
 	private final Logger LOG = Logger.getLogger(this.getClass().getName());

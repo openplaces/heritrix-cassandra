@@ -9,7 +9,7 @@ package org.archive.io.cassandra;
  *
  * <pre>
  * {@code
- * <bean id="cassandraParameterSettings" class="org.archive.io.cassandra.CassandraParameters">
+ * <bean id="cassandraParameters" class="org.archive.io.cassandra.CassandraParameters">
  *   <!-- The 'keyspace' parameter is the minimum required -->
  *   <property name="keyspace" value="MyApplication" />
  *   <!-- Changing the default column family from "crawl" to "crawl_table" -->
