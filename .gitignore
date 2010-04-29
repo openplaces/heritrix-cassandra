@@ -2,7 +2,5 @@
 /.classpath
 /.settings
 /.project
-/test-output
-/temp-testng-customsuite.xml
-/.checkstyle
 /bin-eclipse
+/build

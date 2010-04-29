@@ -3,6 +3,9 @@
 
     <property name="version" value="0.1" />
 
+    <property name="cassandra-version" value="0.6.1" />
+    <property name="heritrix-version" value="3.0.0" />
+
     <property name="lib.dir" value="${basedir}/lib" />
     <property name="build.dir" value="build" />
     <property name="src.dir" value="src" />
@@ -25,7 +28,9 @@
           <classpath>
             <pathelement path="${classpath}"/>
             <fileset dir="${lib.dir}">
-              <include name="**/*.jar"/>
+              <include name="*.jar" />
+              <include name="heritrix-${heritrix-version}/*.jar" />
+              <include name="cassandra-${cassandra-version}/*.jar" />
             </fileset>
           </classpath>
         </javac>
