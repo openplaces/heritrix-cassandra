@@ -10,6 +10,8 @@ package org.archive.io.cassandra;
  * <pre>
  * {@code
  * <bean id="cassandraParameterSettings" class="org.archive.io.cassandra.CassandraParameters">
+ *   <!-- The 'keyspace' parameter is the minimum required -->
+ *   <property name="keyspace" value="MyApplication" />
  *   <!-- Changing the default column family from "crawl" to "crawl_table" -->
  *   <property name="crawlColumnFamily" value="crawl_table" />
  *   <!-- Overwrite more options here -->
@@ -28,6 +30,7 @@ public class CassandraParameters {
 
 	// Defaults to writing to the "crawl" table
 	public static final String CRAWL_COLUMN_FAMILY = "crawl";
+	public static final String ENCODING_SCHEME = "UTF-8";
 
 	// "content" column family and qualifiers
     public static final String CONTENT_SUPER_COLUMN = "content";
@@ -44,9 +47,12 @@ public class CassandraParameters {
 
 
 	/** ACTUAL OPTIONS INITIALIZED TO DEFAULTS **/
-    private String crawlColumnFamily = CRAWL_COLUMN_FAMILY;
+    private String keyspace = "";
 
-    private String contentSuperColumn = CONTENT_SUPER_COLUMN;
+	private String crawlColumnFamily = CRAWL_COLUMN_FAMILY;
+    private String encodingScheme = ENCODING_SCHEME;
+
+	private String contentSuperColumn = CONTENT_SUPER_COLUMN;
     private String contentSubColumn = CONTENT_SUB_COLUMN;
 
     private String curiSuperColumn = CURI_SUPER_COLUMN;
@@ -58,12 +64,27 @@ public class CassandraParameters {
     private String requestSubColumn = REQUEST_SUB_COLUMN;
 
 
+    public String getKeyspace() {
+    	if (keyspace.isEmpty())
+    		throw new RuntimeException("A keyspace was never set for this object. Define one before trying to access it.");
+
+		return keyspace;
+	}
+	public void setKeyspace(String keyspace) {
+		this.keyspace = keyspace;
+	}
     public String getCrawlColumnFamily() {
         return crawlColumnFamily;
     }
     public void setCrawlColumnFamily(String crawlColumnFamily) {
         this.crawlColumnFamily = crawlColumnFamily;
     }
+    public String getEncodingScheme() {
+		return encodingScheme;
+	}
+	public void setEncodingScheme(String encodingScheme) {
+		this.encodingScheme = encodingScheme;
+	}
 	public String getContentSuperColumn() {
         return contentSuperColumn;
     }
