@@ -100,8 +100,12 @@ If you can't find a release that corresponds to your combination of Heritrix and
 
 Releases
 --------
+Each release of heritrix-cassandra is compiled against different version combinations of Heritrix and Cassandra. The following table summarizes them.
 
-Version 0.2: Compiled and intended to run with Heritrix 3.0.0 and Cassandra 0.6.1
-
-Version 0.1: Compiled and intended to run with Heritrix 3.0.0 and Cassandra 0.6.0
+==================  ========  =========
+heritrix-cassandra  Heritrix  Cassandra
+==================  ========  =========
+       0.2           3.0.0      0.6.1
+       0.1           3.0.0      0.6.0
+==================  ========  =========
 
