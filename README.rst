@@ -60,29 +60,33 @@ Getting Started
 org.archive.io.cassandra.CassandraParameters
 --------------------------------------------
 
- * keyspace [required]: The name of your Cassandra keyspace.
+======================  =============== =========
+Parameter           	Default Value	Description
+======================  =============== =========
+keyspace                (none)		The name of your Cassandra keyspace.
 
- * crawlColumnFamily (defaults to 'crawl'): Name of the column family to use.
+crawlColumnFamily       crawl 		Name of the column family to use.
 
- * encodingScheme (defaults to 'UTF-8'): Encoding scheme you're using.
+encodingScheme 		UTF-8 		Encoding scheme you're using.
 
- * contentSuperColumn (defaults to 'content'): Name of the super column used to save the raw content to.
+contentSuperColumn 	content 	Name of the super column used to save the raw content to.
 
- * contentSubColumn (defaults to 'raw_data'): Name of the sub column used to save the raw content to.
+contentSubColumn 	raw_data 	Name of the sub column used to save the raw content to.
 
- * curiSuperColumn (defaults to 'curi'): Name of the super column used to store the metadata related to the crawl.
+curiSuperColumn 	curi 		Name of the super column used to store the metadata related to the crawl.
 
- * ipSubColumn (defaults to 'ip'): Name of the sub column used to save the resolved ip to.
+ipSubColumn 		ip 		Name of the sub column used to save the resolved ip to.
 
- * pathFromSeedSubColumn (defaults to 'path-from-seed'): Name of the sub column used to save the path from the seed to.
+pathFromSeedSubColumn 	path-from-seed 	Name of the sub column used to save the path from the seed to.
 
- * isSeedSubColumn (defaults to 'is-seed'): Name of the sub column used to store the boolean of whether the current entry is a seed.
+isSeedSubColumn 	is-seed 	Name of the sub column used to store the boolean of whether the current entry is a seed.
 
- * viaSubColumn (defaults to 'via'): Name of the sub column used to store the via information.
+viaSubColumn 		via 		Name of the sub column used to store the via information.
 
- * urlSubColumn (defaults to 'url'): Name of the sub column used to store the url.
+urlSubColumn 		url		Name of the sub column used to store the url.
 
- * requestSubColumn (defaults to 'request'): Name of the sub column used to store the request header.
+requestSubColumn 	request		Name of the sub column used to store the request header.
+======================  =============== =========
 
 
 Building
