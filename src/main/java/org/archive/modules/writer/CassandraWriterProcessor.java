@@ -147,7 +147,8 @@ public class CassandraWriterProcessor extends WriterPoolProcessor {
 
 	@Override
 	protected void setupPool(AtomicInteger serial) {
-		setPool(new CassandraWriterPool(getCassandraServers(), getCassandraPort(), getCassandraParameters(), getPoolMaxActive(), getPoolMaxWaitMs()));
+		setPool(new CassandraWriterPool(getCassandraServers(), getCassandraPort(), getCassandraParameters(),
+				getPoolMaxActive(), getPoolMaxWaitMs()));
 	}
 
 	@Override
@@ -254,8 +255,8 @@ public class CassandraWriterProcessor extends WriterPoolProcessor {
 			count = cassandraClient.get_count(getCassandraParameters().getKeyspace(), key,
 					new ColumnParent(getCassandraParameters().getCrawlColumnFamily()), ConsistencyLevel.ONE);
 		} catch (Exception e) {
-			LOG.error("An error occurred while trying to read from Cassandra - keyspace: " + getCassandraParameters().getKeyspace()
-					+ " and key: " + key);
+			LOG.error("An error occurred while trying to read from Cassandra - keyspace: " +
+					getCassandraParameters().getKeyspace() + " and key: " + key);
 		}
 
 		// If count was returned with a value larger than 0, then that means the key exists.
@@ -286,7 +287,8 @@ public class CassandraWriterProcessor extends WriterPoolProcessor {
         long writerPoolMemberPosition = writerPoolMember.getPosition();
         CassandraWriter cassandraWriter = (CassandraWriter) writerPoolMember;
         try {
-            cassandraWriter.write(curi, getHostAddress(curi), curi.getRecorder().getRecordedOutput(), curi.getRecorder().getRecordedInput());
+            cassandraWriter.write(curi, getHostAddress(curi), curi.getRecorder().getRecordedOutput(),
+            		curi.getRecorder().getRecordedInput());
         } finally {
             setTotalBytesWritten(getTotalBytesWritten() + (writerPoolMember.getPosition() - writerPoolMemberPosition));
             getPool().returnFile(writerPoolMember);

@@ -39,8 +39,8 @@ public class CassandraWriterPool extends WriterPool {
      * @param poolMaximumActive the maximum number of writers in the writer pool.
      * @param poolMaximumWait the maximum waittime for all writers in the pool.
      */
-    public CassandraWriterPool(final String cassandraServers, final int cassandraPort, final CassandraParameters parameters,
-    		final int poolMaximumActive, final int poolMaximumWait) {
+    public CassandraWriterPool(final String cassandraServers, final int cassandraPort,
+    		final CassandraParameters parameters, final int poolMaximumActive, final int poolMaximumWait) {
         super(
             new AtomicInteger(), 
             new BasePoolableObjectFactory() {

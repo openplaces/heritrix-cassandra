@@ -14,7 +14,6 @@ import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.ColumnOrSuperColumn;
 import org.apache.cassandra.thrift.ConsistencyLevel;
 import org.apache.cassandra.thrift.Mutation;
-import org.apache.cassandra.thrift.SuperColumn;
 import org.apache.log4j.Logger;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TSocket;
@@ -49,7 +48,9 @@ public class CassandraWriter extends WriterPoolMember {
 		return _client;
 	}
 
-	public CassandraWriter(String cassandraServers, int cassandraPort, CassandraParameters parameters) throws IOException, TTransportException {
+	public CassandraWriter(String cassandraServers, int cassandraPort, CassandraParameters parameters)
+		throws IOException, TTransportException {
+
 		super(null, null, null, false, null);
 
 		this.cassandraParameters = parameters;
@@ -92,53 +93,61 @@ public class CassandraWriter extends WriterPoolMember {
         if (LOG.isTraceEnabled())
             LOG.trace("Writing " + url + " as " + key);
 
-        // List for the 'curi' super column
-        List<Column> curiColumns = new ArrayList<Column>();
-
-        // List for the 'content' super column
-        List<Column> contentColumns = new ArrayList<Column>();
-
         // The timestmap is the curi fetch time in microseconds
         long timestamp = curi.getFetchBeginTime()*1000;
 
         // The encoding scheme
         String encoding = getCassandraParameters().getEncodingScheme();
 
+        // Stores all the columns
+        List<Column> columnList = new ArrayList<Column>();
 
         // write the target url to the url column
-        curiColumns.add(new Column(getCassandraParameters().getUrlSubColumn().getBytes(encoding), url.getBytes(encoding), timestamp));
+        columnList.add(
+        		new Column(getCassandraParameters().getUrlColumnName().getBytes(encoding),
+        				url.getBytes(encoding), timestamp));
 
         // write the target ip to the ip column
-        curiColumns.add(new Column(getCassandraParameters().getIpSubColumn().getBytes(encoding), ip.getBytes(encoding), timestamp));
+        columnList.add(new Column(getCassandraParameters().getIpColumnName().getBytes(encoding),
+        						ip.getBytes(encoding), timestamp));
 
         // is the url part of the seed url (the initial url(s) used to start the crawl)
         if (curi.isSeed()) {
-        	curiColumns.add(new Column(getCassandraParameters().getIsSeedSubColumn().getBytes(encoding), new byte[]{(byte)-1}, timestamp));
+        	columnList.add(
+        			new Column(getCassandraParameters().getIsSeedColumnName().getBytes(encoding),
+        					new byte[]{(byte)-1}, timestamp));
+
         	if (curi.getPathFromSeed() != null && curi.getPathFromSeed().trim().length() > 0) {
-        		curiColumns.add(new Column(getCassandraParameters().getPathFromSeedSubColumn().getBytes(encoding), curi.getPathFromSeed().trim().getBytes(encoding), timestamp));
+        		columnList.add(
+        				new Column(getCassandraParameters().getPathFromSeedColumnName().getBytes(encoding),
+        						curi.getPathFromSeed().trim().getBytes(encoding), timestamp));
         	}
         }
 
         // write the Via string
         String viaStr = (curi.getVia() != null) ? curi.getVia().toString().trim() : null;
         if (viaStr != null && viaStr.length() > 0) {
-        	curiColumns.add(new Column(getCassandraParameters().getViaSubColumn().getBytes(encoding), viaStr.getBytes(encoding), timestamp));
+        	columnList.add(
+        			new Column(getCassandraParameters().getViaColumnName().getBytes(encoding),
+        					viaStr.getBytes(encoding), timestamp));
         }
         
         // Write the Crawl Request to the Put object
         if (recordingOutputStream.getSize() > 0) {
-        	curiColumns.add(new Column(	getCassandraParameters().getRequestSubColumn().getBytes(encoding),
-        								getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(), (int)recordingOutputStream.getSize()),
-        								timestamp));
+        	columnList.add(
+        			new Column(getCassandraParameters().getRequestColumnName().getBytes(encoding),
+        				getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(),
+        						(int)recordingOutputStream.getSize()), timestamp));
         }
         
         // Write the Crawl Response to the Put object
         ReplayInputStream replayInputStream = recordingInputStream.getReplayInputStream();
         try {
         	// add the raw content to the table record
-        	contentColumns.add(new Column(	getCassandraParameters().getContentSubColumn().getBytes(encoding),
-        									getByteArrayFromInputStream(replayInputStream, (int) recordingInputStream.getSize()),
-        									timestamp));
+        	columnList.add(
+        			new Column(getCassandraParameters().getContentColumnName().getBytes(encoding),
+        				getByteArrayFromInputStream(replayInputStream,
+        						(int) recordingInputStream.getSize()), timestamp));
 
         	// reset the input steam for the content processor
         	replayInputStream = recordingInputStream.getReplayInputStream();
@@ -149,25 +158,8 @@ public class CassandraWriter extends WriterPoolMember {
 
         // Wrapping everything up and writing to Cassandra
 
-        // Representing the 'curi' and 'content' super columns
-        SuperColumn curiSuperColumn = new SuperColumn(getCassandraParameters().getCuriSuperColumn().getBytes(encoding), curiColumns);
-        ColumnOrSuperColumn curiColumnOrSuperColumn = new ColumnOrSuperColumn();
-        curiColumnOrSuperColumn.setSuper_column(curiSuperColumn);
-
-        SuperColumn contentSuperColumn = new SuperColumn(getCassandraParameters().getContentSuperColumn().getBytes(encoding), contentColumns);
-        ColumnOrSuperColumn contentColumnOrSuperColumn = new ColumnOrSuperColumn();
-        contentColumnOrSuperColumn.setSuper_column(contentSuperColumn);
-
         // Creating the list of 'mutation' objects for Cassandra
-        List<Mutation> mutations = new ArrayList<Mutation>();
-
-        Mutation curiMutation = new Mutation();
-        curiMutation.setColumn_or_supercolumn(curiColumnOrSuperColumn);
-        mutations.add(curiMutation);
-
-        Mutation contentMutation = new Mutation();
-        contentMutation.setColumn_or_supercolumn(contentColumnOrSuperColumn);
-        mutations.add(contentMutation);
+        List<Mutation> mutations = generateMutations(columnList);
 
         Map<String, List<Mutation>> mutationsForColumnFamily = new HashMap<String, List<Mutation>>();
         mutationsForColumnFamily.put(getCassandraParameters().getCrawlColumnFamily(), mutations);
@@ -181,6 +173,21 @@ public class CassandraWriter extends WriterPoolMember {
 		} catch (Exception e) {
 			LOG.error("The following exception was encountered while writing key '" + key + "':\n" + e.getMessage());
 		}
+    }
+
+    private List<Mutation> generateMutations(List<Column> columns) {
+    	List<Mutation> mutations = new ArrayList<Mutation>();
+
+    	for (Column column : columns) {
+    		ColumnOrSuperColumn c = new ColumnOrSuperColumn();
+    		c.setColumn(column);
+
+    		Mutation mutation = new Mutation();
+    		mutation.setColumn_or_supercolumn(c);
+    		mutations.add(mutation);
+    	}
+
+    	return mutations;
     }
 
 	@Override
@@ -199,7 +206,9 @@ public class CassandraWriter extends WriterPoolMember {
      *
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    protected byte[] getByteArrayFromInputStream(final ReplayInputStream replayInputStream, final int streamSize) throws IOException {
+    protected byte[] getByteArrayFromInputStream(final ReplayInputStream replayInputStream, final int streamSize)
+    	throws IOException {
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream(streamSize);
         try {
             // read the InputStream to the ByteArrayOutputStream

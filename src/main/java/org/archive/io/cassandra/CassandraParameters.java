@@ -32,18 +32,18 @@ public class CassandraParameters {
 	public static final String CRAWL_COLUMN_FAMILY = "crawl";
 	public static final String ENCODING_SCHEME = "UTF-8";
 
-	// "content" column family and qualifiers
-    public static final String CONTENT_SUPER_COLUMN = "content";
-    public static final String CONTENT_SUB_COLUMN = "raw_data";
+	// "content" logical grouping
+    public static final String CONTENT_PREFIX = "content";
+    public static final String CONTENT_COLUMN_NAME = "raw_data";
 
-    // "curi" column family and qualifiers
-    public static final String CURI_SUPER_COLUMN = "curi";
-    public static final String IP_SUB_COLUMN = "ip";
-    public static final String PATH_FROM_SEED_SUB_COLUMN = "path-from-seed";
-    public static final String IS_SEED_SUB_COLUMN = "is-seed";
-    public static final String VIA_SUB_COLUMN = "via";
-    public static final String URL_SUB_COLUMN = "url";
-    public static final String REQUEST_SUB_COLUMN = "request";
+    // "curi" logical grouping
+    public static final String CURI_PREFIX = "curi";
+    public static final String IP_COLUMN_NAME = "ip";
+    public static final String PATH_FROM_SEED_COLUMN_NAME = "path-from-seed";
+    public static final String IS_SEED_COLUMN_NAME = "is-seed";
+    public static final String VIA_COLUMN_NAME = "via";
+    public static final String URL_COLUMN_NAME = "url";
+    public static final String REQUEST_COLUMN_NAME = "request";
 
 
 	/** ACTUAL OPTIONS INITIALIZED TO DEFAULTS **/
@@ -52,21 +52,22 @@ public class CassandraParameters {
 	private String crawlColumnFamily = CRAWL_COLUMN_FAMILY;
     private String encodingScheme = ENCODING_SCHEME;
 
-	private String contentSuperColumn = CONTENT_SUPER_COLUMN;
-    private String contentSubColumn = CONTENT_SUB_COLUMN;
+	private String contentPrefix = CONTENT_PREFIX;
+    private String contentColumnName = contentPrefix + ":" + CONTENT_COLUMN_NAME;
 
-    private String curiSuperColumn = CURI_SUPER_COLUMN;
-    private String ipSubColumn = IP_SUB_COLUMN;
-    private String pathFromSeedSubColumn = PATH_FROM_SEED_SUB_COLUMN;
-    private String isSeedSubColumn = IS_SEED_SUB_COLUMN;
-    private String viaSubColumn = VIA_SUB_COLUMN;
-    private String urlSubColumn = URL_SUB_COLUMN;
-    private String requestSubColumn = REQUEST_SUB_COLUMN;
+    private String curiPrefix = CURI_PREFIX;
+    private String ipColumnName = curiPrefix + ":" + IP_COLUMN_NAME;
+    private String pathFromSeedColumnName = curiPrefix + ":" + PATH_FROM_SEED_COLUMN_NAME;
+    private String isSeedColumnName = curiPrefix + ":" + IS_SEED_COLUMN_NAME;
+    private String viaColumnName = curiPrefix + ":" + VIA_COLUMN_NAME;
+    private String urlColumnName = curiPrefix + ":" + URL_COLUMN_NAME;
+    private String requestColumnName = curiPrefix + ":" + REQUEST_COLUMN_NAME;
 
 
     public String getKeyspace() {
     	if (keyspace.isEmpty())
-    		throw new RuntimeException("A keyspace was never set for this object. Define one before trying to access it.");
+    		throw new RuntimeException("A keyspace was never set for this object. " +
+    				"Define one before trying to access it.");
 
 		return keyspace;
 	}
@@ -85,58 +86,58 @@ public class CassandraParameters {
 	public void setEncodingScheme(String encodingScheme) {
 		this.encodingScheme = encodingScheme;
 	}
-	public String getContentSuperColumn() {
-        return contentSuperColumn;
+	public String getContentPrefix() {
+        return contentPrefix;
     }
-    public void setContentSuperColumn(String contentSuperColumn) {
-        this.contentSuperColumn = contentSuperColumn;
+    public void setContentPrefix(String contentPrefix) {
+        this.contentPrefix = contentPrefix;
     }
-    public String getContentSubColumn() {
-        return contentSubColumn;
+    public String getContentColumnName() {
+        return contentColumnName;
     }
-    public void setContentSubColumn(String contentSubColumn) {
-        this.contentSubColumn = contentSubColumn;
+    public void setContentColumnName(String contentColumnName) {
+        this.contentColumnName = contentColumnName;
     }
-    public String getCuriSuperColumn() {
-        return curiSuperColumn;
+    public String getCuriPrefix() {
+        return curiPrefix;
     }
-    public void setCuriSuperColumn(String curiSuperColumn) {
-        this.curiSuperColumn = curiSuperColumn;
+    public void setCuriPrefix(String curiPrefix) {
+        this.curiPrefix = curiPrefix;
     }
-    public String getIpSubColumn() {
-        return ipSubColumn;
+    public String getIpColumnName() {
+        return ipColumnName;
     }
-    public void setIpSubColumn(String ipSubColumn) {
-        this.ipSubColumn = ipSubColumn;
+    public void setIpColumnName(String ipColumnName) {
+        this.ipColumnName = ipColumnName;
     }
-    public String getPathFromSeedSubColumn() {
-        return pathFromSeedSubColumn;
+    public String getPathFromSeedColumnName() {
+        return pathFromSeedColumnName;
     }
-    public void setPathFromSeedSubColumn(String pathFromSeedSubColumn) {
-        this.pathFromSeedSubColumn = pathFromSeedSubColumn;
+    public void setPathFromSeedColumnName(String pathFromSeedColumnName) {
+        this.pathFromSeedColumnName = pathFromSeedColumnName;
     }
-    public String getIsSeedSubColumn() {
-        return isSeedSubColumn;
+    public String getIsSeedColumnName() {
+        return isSeedColumnName;
     }
-    public void setIsSeedSubColumn(String isSeedSubColumn) {
-        this.isSeedSubColumn = isSeedSubColumn;
+    public void setIsSeedColumnName(String isSeedColumnName) {
+        this.isSeedColumnName = isSeedColumnName;
     }
-    public String getViaSubColumn() {
-        return viaSubColumn;
+    public String getViaColumnName() {
+        return viaColumnName;
     }
-    public void setViaSubColumn(String viaSubColumn) {
-        this.viaSubColumn = viaSubColumn;
+    public void setViaColumnName(String viaColumnName) {
+        this.viaColumnName = viaColumnName;
     }
-    public String getUrlSubColumn() {
-        return urlSubColumn;
+    public String getUrlColumnName() {
+        return urlColumnName;
     }
-    public void setUrlSubColumn(String urlSubColumn) {
-        this.urlSubColumn = urlSubColumn;
+    public void setUrlColumnName(String urlColumnName) {
+        this.urlColumnName = urlColumnName;
     }
-    public String getRequestSubColumn() {
-        return requestSubColumn;
+    public String getRequestColumnName() {
+        return requestColumnName;
     }
-    public void setRequestSubColumn(String requestSubColumn) {
-        this.requestSubColumn = requestSubColumn;
+    public void setRequestColumnName(String requestColumnName) {
+        this.requestColumnName = requestColumnName;
     }
 }

@@ -69,23 +69,23 @@ crawlColumnFamily       crawl 		Name of the column family to use.
 
 encodingScheme 		UTF-8 		Encoding scheme you're using.
 
-contentSuperColumn 	content 	Name of the super column used to save the raw content to.
+contentPrefix		content 	Name of the logical prefix used to save the raw content to. If contentColumnName is redefined, then this prefix will be overridden and no longer used.
 
-contentSubColumn 	raw_data 	Name of the sub column used to save the raw content to.
+contentColumnName 	raw_data 	Name of the column used to save the raw content to.
 
-curiSuperColumn 	curi 		Name of the super column used to store the metadata related to the crawl.
+curiPrefix		curi 		Name of the logical prefix used to store the metadata related to the crawl. If any of the following parameters are redefined, then this prefix will be overridden and no longer used with it.
 
-ipSubColumn 		ip 		Name of the sub column used to save the resolved ip to.
+ipColumnName 		ip 		Name of the column used to save the resolved ip to.
 
-pathFromSeedSubColumn 	path-from-seed 	Name of the sub column used to save the path from the seed to.
+pathFromSeedColumnName 	path-from-seed 	Name of the column used to save the path from the seed to.
 
-isSeedSubColumn 	is-seed 	Name of the sub column used to store the boolean of whether the current entry is a seed.
+isSeedColumnName 	is-seed 	Name of the column used to store the boolean of whether the current entry is a seed.
 
-viaSubColumn 		via 		Name of the sub column used to store the via information.
+viaColumnName 		via 		Name of the column used to store the via information.
 
-urlSubColumn 		url		Name of the sub column used to store the url.
+urlColumnName 		url		Name of the column used to store the url.
 
-requestSubColumn 	request		Name of the sub column used to store the request header.
+requestColumnName 	request		Name of the column used to store the request header.
 ======================  =============== =========
 
 
