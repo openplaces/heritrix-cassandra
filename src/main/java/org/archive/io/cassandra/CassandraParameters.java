@@ -31,6 +31,7 @@ public class CassandraParameters {
 	// Defaults to writing to the "crawl" table
 	public static final String CRAWL_COLUMN_FAMILY = "crawl";
 	public static final String ENCODING_SCHEME = "UTF-8";
+	public static final boolean FRAMED_TRANSPORT = false;
 
 	// "content" logical grouping
     public static final String CONTENT_PREFIX = "content";
@@ -51,6 +52,7 @@ public class CassandraParameters {
 
 	private String crawlColumnFamily = CRAWL_COLUMN_FAMILY;
     private String encodingScheme = ENCODING_SCHEME;
+    private boolean framedTransport = FRAMED_TRANSPORT;
 
 	private String contentPrefix = CONTENT_PREFIX;
     private String contentColumnName = contentPrefix + ":" + CONTENT_COLUMN_NAME;
@@ -85,6 +87,12 @@ public class CassandraParameters {
 	}
 	public void setEncodingScheme(String encodingScheme) {
 		this.encodingScheme = encodingScheme;
+	}
+	public boolean isFramedTransport() {
+		return framedTransport;
+	}
+	public void setFramedTransport(boolean framedTransport) {
+		this.framedTransport = framedTransport;
 	}
 	public String getContentPrefix() {
         return contentPrefix;

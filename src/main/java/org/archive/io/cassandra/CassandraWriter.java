@@ -16,6 +16,7 @@ import org.apache.cassandra.thrift.ConsistencyLevel;
 import org.apache.cassandra.thrift.Mutation;
 import org.apache.log4j.Logger;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.archive.io.RecordingInputStream;
@@ -65,7 +66,11 @@ public class CassandraWriter extends WriterPoolMember {
 
 		_socket = new TSocket(seed, cassandraPort);
 
-		TBinaryProtocol binaryProtocol = new TBinaryProtocol(_socket, false, false);
+		TBinaryProtocol binaryProtocol;
+		if (parameters.isFramedTransport())
+			binaryProtocol = new TBinaryProtocol(new TFramedTransport(_socket), false, false);
+		else
+			binaryProtocol = new TBinaryProtocol(_socket, false, false);
 
 		_client = new Cassandra.Client(binaryProtocol);
 		_socket.open();

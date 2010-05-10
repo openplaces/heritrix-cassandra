@@ -69,6 +69,8 @@ crawlColumnFamily       crawl 		Name of the column family to use.
 
 encodingScheme 		UTF-8 		Encoding scheme you're using.
 
+framedTransport		false		Whether to used Thrift's Framed Transport
+
 contentPrefix		content 	Name of the logical prefix used to save the raw content to. If contentColumnName is redefined, then this prefix will be overridden and no longer used.
 
 contentColumnName 	raw_data 	Name of the column used to save the raw content to.
