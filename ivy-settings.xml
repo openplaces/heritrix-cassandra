@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ivysettings>
+    <conf defaultResolver="chained"/>
+    <resolvers>
+        <chain name="chained">
+            <ibiblio name="archive.org" root="http://builds.archive.org:8080/maven2/" m2compatible="true"/>
+            <ibiblio name="maven.org" root="http://repo1.maven.org/maven2/" m2compatible="true"/>
+            <ibiblio name="java.net" root="http://download.java.net/maven/2/" m2compatible="true"/>
+            <ibiblio name="ibiblio" root="http://mirrors.ibiblio.org/pub/mirrors/maven2/" m2compatible="true"/>
+        </chain>
+    </resolvers>
+</ivysettings> 
