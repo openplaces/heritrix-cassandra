@@ -1,6 +1,5 @@
 package org.archive.io.cassandra;
 
-import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.thrift.Cassandra;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -14,9 +13,10 @@ public class Connection {
 	Cassandra.Client _client;
 	TSocket _socket;
 	String _host;
+	int _port = 9160;
 	
-	public Connection(String host) throws TException {
-		_client = connectToCassandra(host);
+	public Connection(String host, int port) throws TException {
+		_client = connectToCassandra(host, port);
 	}
 	
 	public Cassandra.Client client() {
@@ -35,13 +35,14 @@ public class Connection {
 		return (_socket == null || !_socket.isOpen());
 	}
 
-	private Cassandra.Client connectToCassandra(String host) throws TException {
+	private Cassandra.Client connectToCassandra(String host, int port) throws TException {
 		// Try to connect (up to maximum attempts)
 		_host = host;
+		_port = port;
 		for (int i=1 ; i < MAX_CONNECTION_ATTEMPTS ; i++) {
 			try {
 				if (_socket != null) _socket.close(); // close any previously open sockets
-				_socket = new TSocket(_host, DatabaseDescriptor.getThriftPort());
+				_socket = new TSocket(_host, _port);
 				TBinaryProtocol binaryProtocol = new TBinaryProtocol(new TFramedTransport(_socket), false, false);
 				Cassandra.Client client = new Cassandra.Client(binaryProtocol);
 				_socket.open();

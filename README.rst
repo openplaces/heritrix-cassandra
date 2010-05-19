@@ -24,7 +24,15 @@ Getting Started
 
     <!-- DISPOSITION CHAIN -->
     <bean id="cassandraParameters" class="org.archive.io.cassandra.CassandraParameters">
-      <!-- At a minimum, you need to define a keyspace value -->
+      <!-- "seeds" and "keyspace" are required, while port defaults to 9160 -->
+
+      <!-- Pass a comma-separated list of servers to Cassandra here -->
+      <property name="seeds" value="localhost,127.0.0.1" />
+
+      <!-- This is the thrift port -->
+      <property name="port" value="9160" />
+
+      <!-- Your application specific keyspace -->
       <property name="keyspace" value="MyApplication" />
 
       <!-- Change the crawlColumnFamily from its default value of 'crawl' -->
@@ -34,10 +42,6 @@ Getting Started
     </bean>
 
     <bean id="cassandraWriterProcessor" class="org.archive.modules.writer.CassandraWriterProcessor">
-      <!-- Pass a comma-separated list of servers to Cassandra here -->
-      <property name="cassandraServers" value="localhost,127.0.0.1" />
-      <!-- This is the thrift port -->
-      <property name="cassandraPort" value="9160" />
       <property name="cassandraParameters">
         <!-- Referencing the named bean we defined above -->
         <bean ref="cassandraParameters" />
@@ -63,6 +67,10 @@ org.archive.io.cassandra.CassandraParameters
 ======================  =============== =========
 Parameter           	Default Value	Description
 ======================  =============== =========
+seeds                   (none)          Comma-separated list of Cassandra servers (can be a list of any nodes in your cluster).
+
+port			9160		The Thrift port.
+
 keyspace                (none)		The name of your Cassandra keyspace.
 
 crawlColumnFamily       crawl 		Name of the column family to use.

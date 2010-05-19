@@ -30,13 +30,13 @@ import org.archive.util.ArchiveUtils;
  * {@code
  * <!-- DISPOSITION CHAIN -->
  * <bean id="cassandraParameters" class="org.archive.io.cassandra.CassandraParameters">
+ *   <property name="seeds" value="localhost,127.0.0.1" />
+     <property name="port" value="9160" />
  *   <property name="keyspace" value="MyApplication" />
  *   <property name="crawlColumnFamily" value="crawled_pages" />
  * </bean>
  *
  * <bean id="cassandraWriterProcessor" class="org.archive.modules.writer.CassandraWriterProcessor">
- *   <property name="cassandraServers" value="localhost,127.0.0.1" />
- *   <property name="cassandraPort" value="9160" />
  *   <property name="cassandraParameters">
  *     <bean ref="cassandraParameters" />
  *   </property>
@@ -65,8 +65,6 @@ public class CassandraWriterProcessor extends WriterPoolProcessor {
 
 	private static final long serialVersionUID = 6207244931489760644L;
 
-	private String cassandraServers;
-	private int cassandraPort = 9160;
 
 	/**
      * @see org.archive.io.cassandra.CassandraParameters
@@ -93,20 +91,6 @@ public class CassandraWriterProcessor extends WriterPoolProcessor {
      */
     private boolean onlyProcessNewRecords = false;
 
-
-    public String getCassandraServers() {
-    	return cassandraServers;
-    }
-    public void setCassandraServers(String cassandraServers) {
-    	this.cassandraServers = cassandraServers;
-    }
-
-    public int getCassandraPort() {
-    	return cassandraPort;
-    }
-    public void setCassandraPort(int cassandraPort) {
-    	this.cassandraPort = cassandraPort;
-    }
 
     public synchronized CassandraParameters getCassandraParameters() {
     	return cassandraParameters;
@@ -147,8 +131,7 @@ public class CassandraWriterProcessor extends WriterPoolProcessor {
 
 	@Override
 	protected void setupPool(AtomicInteger serial) {
-		setPool(new CassandraWriterPool(getCassandraServers(), getCassandraPort(), getCassandraParameters(),
-				getPoolMaxActive(), getPoolMaxWaitMs()));
+		setPool(new CassandraWriterPool(getCassandraParameters(), getPoolMaxActive(), getPoolMaxWaitMs()));
 	}
 
 	@Override

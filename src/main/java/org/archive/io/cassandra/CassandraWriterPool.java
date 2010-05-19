@@ -29,23 +29,23 @@ import org.archive.io.WriterPool;
  */
 public class CassandraWriterPool extends WriterPool {
 
-    /**
-     * Create a pool of CassandraWriter objects.
-     * 
-     * @param cassandraSeeds
-     * @param cassandraPort
-     * @param parameters the {@link org.archive.io.cassandra.CassandraParameters} object containing your settings
-     * @param poolMaximumActive the maximum number of writers in the writer pool.
-     * @param poolMaximumWait the maximum waittime for all writers in the pool.
-     */
-    public CassandraWriterPool(final String cassandraSeeds, final int cassandraPort,
-    		final CassandraParameters parameters, final int poolMaximumActive, final int poolMaximumWait) {
-        super(
-            new AtomicInteger(), 
-            new CassandraWriterFactory(cassandraSeeds.split(","), parameters),
-            new DefaultWriterPoolSettings(), 
-            poolMaximumActive,
-            poolMaximumWait);
-    }
+	/**
+	 * Create a pool of CassandraWriter objects.
+	 *
+	 * @param cassandraSeeds
+	 * @param cassandraPort
+	 * @param parameters the {@link org.archive.io.cassandra.CassandraParameters} object containing your settings
+	 * @param poolMaximumActive the maximum number of writers in the writer pool.
+	 * @param poolMaximumWait the maximum waittime for all writers in the pool.
+	 */
+	public CassandraWriterPool(final CassandraParameters parameters, final int poolMaximumActive,
+			final int poolMaximumWait) {
+		super(
+			new AtomicInteger(),
+			new CassandraWriterFactory(parameters),
+			new DefaultWriterPoolSettings(),
+			poolMaximumActive,
+			poolMaximumWait);
+	}
 
 }
