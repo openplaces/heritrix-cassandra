@@ -20,7 +20,6 @@ package org.archive.io.cassandra;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.archive.io.DefaultWriterPoolSettings;
 import org.archive.io.WriterPool;
 
@@ -33,28 +32,20 @@ public class CassandraWriterPool extends WriterPool {
     /**
      * Create a pool of CassandraWriter objects.
      * 
-     * @param cassandraServers
+     * @param cassandraSeeds
      * @param cassandraPort
      * @param parameters the {@link org.archive.io.cassandra.CassandraParameters} object containing your settings
      * @param poolMaximumActive the maximum number of writers in the writer pool.
      * @param poolMaximumWait the maximum waittime for all writers in the pool.
      */
-    public CassandraWriterPool(final String cassandraServers, final int cassandraPort,
+    public CassandraWriterPool(final String cassandraSeeds, final int cassandraPort,
     		final CassandraParameters parameters, final int poolMaximumActive, final int poolMaximumWait) {
         super(
             new AtomicInteger(), 
-            new BasePoolableObjectFactory() {
-                public Object makeObject() throws Exception {
-                    return new CassandraWriter(cassandraServers, cassandraPort, parameters);
-                }
-
-                public void destroyObject(Object cassandraWriter) throws Exception {
-                    ((CassandraWriter) cassandraWriter).close();
-                    super.destroyObject(cassandraWriter);
-                }
-            },
+            new CassandraWriterFactory(cassandraSeeds.split(","), parameters),
             new DefaultWriterPoolSettings(), 
             poolMaximumActive,
             poolMaximumWait);
     }
+
 }

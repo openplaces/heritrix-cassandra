@@ -243,7 +243,7 @@ public class CassandraWriterProcessor extends WriterPoolProcessor {
             return false;
         }
 
-        Cassandra.Client cassandraClient = ((CassandraWriter) writerPoolMember).getClient();
+        Cassandra.Client cassandraClient = ((CassandraWriter) writerPoolMember).getConnection().client();
 
         // Generate the key for this uri
         String url = curi.toString();

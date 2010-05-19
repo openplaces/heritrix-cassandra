@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import org.apache.cassandra.thrift.Cassandra;
 import org.apache.cassandra.thrift.Column;
@@ -15,9 +14,6 @@ import org.apache.cassandra.thrift.ColumnOrSuperColumn;
 import org.apache.cassandra.thrift.ConsistencyLevel;
 import org.apache.cassandra.thrift.Mutation;
 import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.archive.io.RecordingInputStream;
 import org.archive.io.RecordingOutputStream;
@@ -34,46 +30,27 @@ public class CassandraWriter extends WriterPoolMember {
 
 	private final Logger LOG = Logger.getLogger(this.getClass().getName());
 
-	private CassandraParameters cassandraParameters;
-	private Cassandra.Client _client;
-	private TSocket _socket;
+	private CassandraParameters _cassandraParameters;
+	private Connection _connection;
 
 	/**
 	 * @see org.archive.io.cassandra.CassandraParameters
 	 */
 	public CassandraParameters getCassandraParameters() {
-		return cassandraParameters;
+		return _cassandraParameters;
 	}
 
-	public Cassandra.Client getClient() {
-		return _client;
+	public Connection getConnection() {
+		return _connection;
 	}
 
-	public CassandraWriter(String cassandraServers, int cassandraPort, CassandraParameters parameters)
+	public CassandraWriter(Connection connection, CassandraParameters parameters)
 		throws IOException, TTransportException {
 
 		super(null, null, null, false, null);
 
-		this.cassandraParameters = parameters;
-
-		// Randomly chosing a server from the list
-		String [] seeds = cassandraServers.split(",");
-		String seed;
-
-		if (seeds != null && seeds.length > 0) {
-			seed = seeds[new Random().nextInt(seeds.length)];
-		} else throw new RuntimeException("No seeds found in configuration.");
-
-		_socket = new TSocket(seed, cassandraPort);
-
-		TBinaryProtocol binaryProtocol;
-		if (parameters.isFramedTransport())
-			binaryProtocol = new TBinaryProtocol(new TFramedTransport(_socket), false, false);
-		else
-			binaryProtocol = new TBinaryProtocol(_socket, false, false);
-
-		_client = new Cassandra.Client(binaryProtocol);
-		_socket.open();
+		this._cassandraParameters = parameters;
+		this._connection = connection;
 	}
 
 	/**
@@ -174,7 +151,7 @@ public class CassandraWriter extends WriterPoolMember {
 
         // Submitting the writes to the Cassandra client
         try {
-			_client.batch_mutate(getCassandraParameters().getKeyspace(), job, ConsistencyLevel.ONE);
+			this._connection.client().batch_mutate(getCassandraParameters().getKeyspace(), job, ConsistencyLevel.ONE);
 		} catch (Exception e) {
 			LOG.error("The following exception was encountered while writing key '" + key + "':\n" + e.getMessage());
 		}
@@ -197,7 +174,7 @@ public class CassandraWriter extends WriterPoolMember {
 
 	@Override
 	public void close() throws IOException {
-		this._socket.close();
+		this._connection.close();
 		super.close();
 	}
 
