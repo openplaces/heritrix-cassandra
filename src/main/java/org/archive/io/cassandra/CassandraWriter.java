@@ -222,7 +222,7 @@ public class CassandraWriter extends WriterPoolMember {
             replayInputStream.close();
         }
         baos.close();
-        return baos.toByteArray();
+        return serialize(baos.toByteArray());
     }
 
     protected void closeStream(Closeable c) {
@@ -234,5 +234,14 @@ public class CassandraWriter extends WriterPoolMember {
     				LOG.debug("Exception in closing " + c, e);
     		}
     	}
+    }
+    
+    /**
+     * Override if you want to serialize bytes in a custom manner.
+     * @param bytes
+     * @return serialized bytes
+     */
+    protected byte[] serialize(byte[] bytes) {
+    	return bytes;
     }
 }
