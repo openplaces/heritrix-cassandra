@@ -110,22 +110,22 @@ public class CassandraWriter extends WriterPoolMember {
         // write the target url to the url column
         columnList.add(
         		new Column(getCassandraParameters().getUrlColumnName().getBytes(encoding),
-        				url.getBytes(encoding), timestamp));
+        				serialize(url.getBytes(encoding)), timestamp));
 
         // write the target ip to the ip column
         columnList.add(new Column(getCassandraParameters().getIpColumnName().getBytes(encoding),
-        						ip.getBytes(encoding), timestamp));
+        						serialize(ip.getBytes(encoding)), timestamp));
 
         // is the url part of the seed url (the initial url(s) used to start the crawl)
         if (curi.isSeed()) {
         	columnList.add(
         			new Column(getCassandraParameters().getIsSeedColumnName().getBytes(encoding),
-        					new byte[]{(byte)-1}, timestamp));
+        					serialize(new byte[]{(byte)-1}), timestamp));
 
         	if (curi.getPathFromSeed() != null && curi.getPathFromSeed().trim().length() > 0) {
         		columnList.add(
         				new Column(getCassandraParameters().getPathFromSeedColumnName().getBytes(encoding),
-        						curi.getPathFromSeed().trim().getBytes(encoding), timestamp));
+        						serialize(curi.getPathFromSeed().trim().getBytes(encoding)), timestamp));
         	}
         }
 
@@ -134,15 +134,15 @@ public class CassandraWriter extends WriterPoolMember {
         if (viaStr != null && viaStr.length() > 0) {
         	columnList.add(
         			new Column(getCassandraParameters().getViaColumnName().getBytes(encoding),
-        					viaStr.getBytes(encoding), timestamp));
+        					serialize(viaStr.getBytes(encoding)), timestamp));
         }
         
         // Write the Crawl Request to the Put object
         if (recordingOutputStream.getSize() > 0) {
         	columnList.add(
         			new Column(getCassandraParameters().getRequestColumnName().getBytes(encoding),
-        				getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(),
-        						(int)recordingOutputStream.getSize()), timestamp));
+        				serialize(getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(),
+        						(int)recordingOutputStream.getSize())), timestamp));
         }
         
         // Write the Crawl Response to the Put object
@@ -151,8 +151,8 @@ public class CassandraWriter extends WriterPoolMember {
         	// add the raw content to the table record
         	columnList.add(
         			new Column(getCassandraParameters().getContentColumnName().getBytes(encoding),
-        				getByteArrayFromInputStream(replayInputStream,
-        						(int) recordingInputStream.getSize()), timestamp));
+        				serialize(getByteArrayFromInputStream(replayInputStream,
+        						(int) recordingInputStream.getSize())), timestamp));
 
         	// reset the input steam for the content processor
         	replayInputStream = recordingInputStream.getReplayInputStream();
@@ -222,7 +222,7 @@ public class CassandraWriter extends WriterPoolMember {
             replayInputStream.close();
         }
         baos.close();
-        return serialize(baos.toByteArray());
+        return baos.toByteArray();
     }
 
     protected void closeStream(Closeable c) {
