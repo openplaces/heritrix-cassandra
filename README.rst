@@ -119,6 +119,7 @@ Each release of heritrix-cassandra is compiled against different version combina
 ==================  ========  =========
 heritrix-cassandra  Heritrix  Cassandra
 ==================  ========  =========
+       0.5           3.0.0      0.6.1
        0.4           3.0.0      0.6.1
        0.3           3.0.0      0.6.0
        0.2           3.0.0      0.6.1
