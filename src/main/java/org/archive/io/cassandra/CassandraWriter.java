@@ -19,6 +19,7 @@ import org.archive.io.RecordingOutputStream;
 import org.archive.io.ReplayInputStream;
 import org.archive.io.WriterPoolMember;
 import org.archive.modules.CrawlURI;
+import org.archive.util.ArchiveUtils;
 
 /**
  * Cassandra implementation for Heritrix writing.
@@ -111,6 +112,13 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
         	columnList.add(
         			new Column(getCassandraParameters().getViaColumnName().getBytes(encoding),
         					serialize(viaStr.getBytes(encoding)), timestamp));
+        }
+
+        String fetchTime = ArchiveUtils.get14DigitDate(curi.getFetchBeginTime());
+        if (fetchTime != null && !fetchTime.isEmpty()) {
+        	columnList.add(
+        			new Column(getCassandraParameters().getProcessedAtColumnName().getBytes(encoding),
+        					serialize(fetchTime.getBytes(encoding)), timestamp));
         }
 
         // Write the Crawl Request to the Put object

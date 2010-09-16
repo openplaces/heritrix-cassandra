@@ -50,6 +50,7 @@ public class CassandraParameters {
 	public static final String VIA_COLUMN_NAME = "via";
 	public static final String URL_COLUMN_NAME = "url";
 	public static final String REQUEST_COLUMN_NAME = "request";
+	public static final String PROCESSED_AT_NAME = "processed_at";
 
 
 	/** ACTUAL OPTIONS INITIALIZED TO DEFAULTS **/
@@ -71,6 +72,7 @@ public class CassandraParameters {
 	private String viaColumnName = curiPrefix + ":" + VIA_COLUMN_NAME;
 	private String urlColumnName = curiPrefix + ":" + URL_COLUMN_NAME;
 	private String requestColumnName = curiPrefix + ":" + REQUEST_COLUMN_NAME;
+	private String processedAtColumnName = curiPrefix + ":" + PROCESSED_AT_NAME;
 
 	private Serializer serializer = null;
 
@@ -175,6 +177,12 @@ public class CassandraParameters {
 	}
 	public void setRequestColumnName(String requestColumnName) {
 		this.requestColumnName = requestColumnName;
+	}
+	public String getProcessedAtColumnName() {
+		return processedAtColumnName;
+	}
+	public void setProcessedAtColumnName(String processedAtColumnName) {
+		this.processedAtColumnName = processedAtColumnName;
 	}
 	public Serializer getSerializer() {
 		return serializer;
