@@ -97,13 +97,13 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
         	columnList.add(
         			new Column(getCassandraParameters().getIsSeedColumnName().getBytes(encoding),
         					serialize(new byte[]{(byte)-1}), timestamp));
-
-        	if (curi.getPathFromSeed() != null && curi.getPathFromSeed().trim().length() > 0) {
-        		columnList.add(
-        				new Column(getCassandraParameters().getPathFromSeedColumnName().getBytes(encoding),
-        						serialize(curi.getPathFromSeed().trim().getBytes(encoding)), timestamp));
-        	}
         }
+
+        if (curi.getPathFromSeed() != null && curi.getPathFromSeed().trim().length() > 0) {
+    		columnList.add(
+    				new Column(getCassandraParameters().getPathFromSeedColumnName().getBytes(encoding),
+    						serialize(curi.getPathFromSeed().trim().getBytes(encoding)), timestamp));
+    	}
 
         // write the Via string
         String viaStr = (curi.getVia() != null) ? curi.getVia().toString().trim() : null;
@@ -112,7 +112,7 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
         			new Column(getCassandraParameters().getViaColumnName().getBytes(encoding),
         					serialize(viaStr.getBytes(encoding)), timestamp));
         }
-        
+
         // Write the Crawl Request to the Put object
         if (recordingOutputStream.getSize() > 0) {
         	columnList.add(
@@ -120,7 +120,7 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
         				serialize(getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(),
         						(int)recordingOutputStream.getSize())), timestamp));
         }
-        
+
         // Write the Crawl Response to the Put object
         ReplayInputStream replayInputStream = recordingInputStream.getReplayInputStream();
         try {
