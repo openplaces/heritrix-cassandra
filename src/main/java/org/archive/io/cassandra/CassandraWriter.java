@@ -25,7 +25,7 @@ import org.archive.modules.CrawlURI;
  *
  * @author greglu
  */
-public class CassandraWriter extends WriterPoolMember {
+public class CassandraWriter extends WriterPoolMember implements Serializer {
 
 	private final Logger LOG = Logger.getLogger(this.getClass().getName());
 
@@ -211,13 +211,11 @@ public class CassandraWriter extends WriterPoolMember {
     		}
     	}
     }
-    
-    /**
-     * Override if you want to serialize bytes in a custom manner.
-     * @param bytes
-     * @return serialized bytes
-     */
-    protected byte[] serialize(byte[] bytes) {
+
+    public byte[] serialize(byte[] bytes) {
+    	if (getCassandraParameters().getSerializer() != null)
+    		return getCassandraParameters().getSerializer().serialize(bytes);
+
     	return bytes;
     }
 }

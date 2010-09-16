@@ -72,6 +72,8 @@ public class CassandraParameters {
 	private String urlColumnName = curiPrefix + ":" + URL_COLUMN_NAME;
 	private String requestColumnName = curiPrefix + ":" + REQUEST_COLUMN_NAME;
 
+	private Serializer serializer = null;
+
 
 	public String getSeeds() {
 		if (seeds.isEmpty())
@@ -173,5 +175,11 @@ public class CassandraParameters {
 	}
 	public void setRequestColumnName(String requestColumnName) {
 		this.requestColumnName = requestColumnName;
+	}
+	public Serializer getSerializer() {
+		return serializer;
+	}
+	public void setSerializer(Serializer serializer) {
+		this.serializer = serializer;
 	}
 }
