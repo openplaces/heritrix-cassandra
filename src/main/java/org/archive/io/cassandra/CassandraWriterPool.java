@@ -18,10 +18,22 @@
  */
 package org.archive.io.cassandra;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.archive.io.DefaultWriterPoolSettings;
+import org.apache.cassandra.thrift.InvalidRequestException;
+import org.apache.cassandra.thrift.TokenRange;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransportException;
 import org.archive.io.WriterPool;
+import org.archive.io.WriterPoolMember;
+import org.archive.io.WriterPoolSettings;
 
 
 /**
@@ -29,6 +41,11 @@ import org.archive.io.WriterPool;
  */
 public class CassandraWriterPool extends WriterPool {
 
+	private final Logger LOG = Logger.getLogger(this.getClass().getName());
+
+	private LinkedList<String> _endPoints = null;
+	private CassandraParameters _parameters;
+	
 	/**
 	 * Create a pool of CassandraWriter objects.
 	 *
@@ -38,14 +55,51 @@ public class CassandraWriterPool extends WriterPool {
 	 * @param poolMaximumActive the maximum number of writers in the writer pool.
 	 * @param poolMaximumWait the maximum waittime for all writers in the pool.
 	 */
-	public CassandraWriterPool(final CassandraParameters parameters, final int poolMaximumActive,
-			final int poolMaximumWait) {
-		super(
-			new AtomicInteger(),
-			new CassandraWriterFactory(parameters),
-			new DefaultWriterPoolSettings(),
-			poolMaximumActive,
-			poolMaximumWait);
+	public CassandraWriterPool(final CassandraParameters parameters, final WriterPoolSettings settings,
+			final int poolMaximumActive, final int poolMaximumWait) {
+		super(new AtomicInteger(), settings, poolMaximumActive, poolMaximumWait);
+		_parameters = parameters;
+	}
+	
+	private LinkedList<String> getEndPoints() throws InterruptedException {
+		if (_endPoints == null) {
+			Set<String> endPoints = new HashSet<String>();
+			for (TokenRange range : getRanges()) {
+				endPoints.addAll(range.getEndpoints());
+			}
+			_endPoints = new LinkedList<String>(endPoints);
+		}
+		return _endPoints;
+	}
+
+	private List<TokenRange> getRanges() throws InterruptedException {
+		for (String seed : _parameters.getSeedsArray()) {
+			try {
+				Connection seedConnection = new Connection(seed, _parameters.getPort());
+				return seedConnection.getClient().describe_ring(_parameters.getKeyspace());
+			} catch (TException e) {
+				LOG.error("The following error occurred while trying to access the seed: " + seed + "\n" +
+						e.getMessage());
+			} catch (InvalidRequestException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		throw new RuntimeException("Cannot get token ranges from any of the seeds: " +
+				Arrays.deepToString(_parameters.getSeedsArray()));
+	}
+
+	@Override
+	protected WriterPoolMember makeWriter() {
+		try {
+			String head = getEndPoints().removeFirst();
+			getEndPoints().addLast(head); // Move to the end of the list
+			return (WriterPoolMember)new CassandraWriter(new Connection(head, _parameters.getPort()), _parameters);
+		} catch (TTransportException e) {
+		} catch (IOException e) {
+		} catch (TException e) {
+		} catch (InterruptedException e) {
+		}
+		return null;
 	}
 
 }

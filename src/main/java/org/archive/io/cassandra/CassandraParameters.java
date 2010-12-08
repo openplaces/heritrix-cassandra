@@ -1,5 +1,6 @@
 package org.archive.io.cassandra;
 
+
 /**
  * Configures the values of the column family, super/sub columns used
  * for the crawl. Also contains a full set of default values.
@@ -37,6 +38,7 @@ public class CassandraParameters {
 	public static final String CRAWL_COLUMN_FAMILY = "crawl";
 	public static final String ENCODING_SCHEME = "UTF-8";
 	public static final boolean FRAMED_TRANSPORT = false;
+	public static final boolean REMOVE_MISSING_PAGES = false;
 
 	// "content" logical grouping
 	public static final String CONTENT_PREFIX = "content";
@@ -61,6 +63,7 @@ public class CassandraParameters {
 	private String crawlColumnFamily = CRAWL_COLUMN_FAMILY;
 	private String encodingScheme = ENCODING_SCHEME;
 	private boolean framedTransport = FRAMED_TRANSPORT;
+	private boolean removeMissingPages = REMOVE_MISSING_PAGES;
 
 	private String contentPrefix = CONTENT_PREFIX;
 	private String contentColumnName = contentPrefix + ":" + CONTENT_COLUMN_NAME;
@@ -123,6 +126,12 @@ public class CassandraParameters {
 	}
 	public void setFramedTransport(boolean framedTransport) {
 		this.framedTransport = framedTransport;
+	}
+	public boolean isRemoveMissingPages() {
+		return removeMissingPages;
+	}
+	public void setRemoveMissingPages(boolean removeMissingPages) {
+		this.removeMissingPages = removeMissingPages;
 	}
 	public String getContentPrefix() {
 		return contentPrefix;
