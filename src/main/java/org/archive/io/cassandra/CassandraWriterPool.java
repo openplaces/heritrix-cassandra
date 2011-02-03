@@ -75,7 +75,7 @@ public class CassandraWriterPool extends WriterPool {
 	private List<TokenRange> getRanges() throws InterruptedException {
 		for (String seed : _parameters.getSeedsArray()) {
 			try {
-				Connection seedConnection = new Connection(seed, _parameters.getPort());
+				Connection seedConnection = new Connection(seed, _parameters.getPort(), _parameters.getKeyspace());
 				return seedConnection.getClient().describe_ring(_parameters.getKeyspace());
 			} catch (TException e) {
 				LOG.error("The following error occurred while trying to access the seed: " + seed + "\n" +
@@ -93,11 +93,18 @@ public class CassandraWriterPool extends WriterPool {
 		try {
 			String head = getEndPoints().removeFirst();
 			getEndPoints().addLast(head); // Move to the end of the list
-			return (WriterPoolMember)new CassandraWriter(new Connection(head, _parameters.getPort()), _parameters);
+			return (WriterPoolMember)new CassandraWriter(
+					new Connection(head, _parameters.getPort(), _parameters.getKeyspace()), _parameters);
 		} catch (TTransportException e) {
+			LOG.error(e.getMessage());
 		} catch (IOException e) {
+			LOG.error(e.getMessage());
 		} catch (TException e) {
+			LOG.error(e.getMessage());
 		} catch (InterruptedException e) {
+			LOG.error(e.getMessage());
+		} catch (InvalidRequestException e) {
+			LOG.error(e.getMessage());
 		}
 		return null;
 	}

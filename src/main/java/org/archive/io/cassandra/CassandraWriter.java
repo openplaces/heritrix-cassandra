@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +14,10 @@ import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.ColumnOrSuperColumn;
 import org.apache.cassandra.thrift.ColumnPath;
 import org.apache.cassandra.thrift.ConsistencyLevel;
+import org.apache.cassandra.thrift.InvalidRequestException;
 import org.apache.cassandra.thrift.Mutation;
 import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.archive.io.RecordingInputStream;
 import org.archive.io.RecordingOutputStream;
@@ -76,6 +79,9 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 		// Create the key (reverse url)
 		String key = UrlKey.createKey(url);
 
+		// The encoding scheme
+		String encoding = getCassandraParameters().getEncodingScheme();
+
 		if (getCassandraParameters().isRemoveMissingPages() &&
 				(curi.getFetchStatus() == HttpURLConnection.HTTP_NOT_FOUND || curi.getFetchStatus() == HttpURLConnection.HTTP_GONE)) {
 			if (LOG.isDebugEnabled())
@@ -83,8 +89,8 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 
 			ColumnPath path = new ColumnPath(getCassandraParameters().getCrawlColumnFamily());
 			try {
-				this._connection.getClient().remove(getCassandraParameters().getKeyspace(),
-						key, path, currentMicroseconds(), ConsistencyLevel.QUORUM);
+				this._connection.getClient().remove(ByteBuffer.wrap(key.getBytes(encoding)), path,
+						currentMicroseconds(), ConsistencyLevel.QUORUM);
 			} catch (Exception e) {
 				// An exception should usually mean that the key didn't exist in the first place.
 				// It's quicker to just try the delete rather than check first.
@@ -97,55 +103,52 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 			// The timestmap is the curi fetch time in microseconds
 			long timestamp = curi.getFetchBeginTime()*1000;
 
-			// The encoding scheme
-			String encoding = getCassandraParameters().getEncodingScheme();
-
 			// Stores all the columns
 			List<Column> columnList = new ArrayList<Column>();
 
 			// write the target url to the url column
 			columnList.add(
-					new Column(getCassandraParameters().getUrlColumnName().getBytes(encoding),
-							serialize(url.getBytes(encoding)), timestamp));
+					new Column(ByteBuffer.wrap(getCassandraParameters().getUrlColumnName().getBytes(encoding)),
+							ByteBuffer.wrap(serialize(url.getBytes(encoding))), timestamp));
 
 			// write the target ip to the ip column
-			columnList.add(new Column(getCassandraParameters().getIpColumnName().getBytes(encoding),
-					serialize(ip.getBytes(encoding)), timestamp));
+			columnList.add(new Column(ByteBuffer.wrap(getCassandraParameters().getIpColumnName().getBytes(encoding)),
+					ByteBuffer.wrap(serialize(ip.getBytes(encoding))), timestamp));
 
 			// is the url part of the seed url (the initial url(s) used to start the crawl)
 			if (curi.isSeed()) {
 				columnList.add(
-						new Column(getCassandraParameters().getIsSeedColumnName().getBytes(encoding),
-								serialize(new byte[]{(byte)-1}), timestamp));
+						new Column(ByteBuffer.wrap(getCassandraParameters().getIsSeedColumnName().getBytes(encoding)),
+								ByteBuffer.wrap(serialize(new byte[]{(byte)-1})), timestamp));
 			}
 
 			if (curi.getPathFromSeed() != null && curi.getPathFromSeed().trim().length() > 0) {
 				columnList.add(
-						new Column(getCassandraParameters().getPathFromSeedColumnName().getBytes(encoding),
-								serialize(curi.getPathFromSeed().trim().getBytes(encoding)), timestamp));
+						new Column(ByteBuffer.wrap(getCassandraParameters().getPathFromSeedColumnName().getBytes(encoding)),
+								ByteBuffer.wrap(serialize(curi.getPathFromSeed().trim().getBytes(encoding))), timestamp));
 			}
 
 			// write the Via string
 			String viaStr = (curi.getVia() != null) ? curi.getVia().toString().trim() : null;
 			if (viaStr != null && viaStr.length() > 0) {
 				columnList.add(
-						new Column(getCassandraParameters().getViaColumnName().getBytes(encoding),
-								serialize(viaStr.getBytes(encoding)), timestamp));
+						new Column(ByteBuffer.wrap(getCassandraParameters().getViaColumnName().getBytes(encoding)),
+								ByteBuffer.wrap(serialize(viaStr.getBytes(encoding))), timestamp));
 			}
 
 			String fetchTime = ArchiveUtils.get14DigitDate(curi.getFetchBeginTime());
 			if (fetchTime != null && !fetchTime.isEmpty()) {
 				columnList.add(
-						new Column(getCassandraParameters().getProcessedAtColumnName().getBytes(encoding),
-								serialize(fetchTime.getBytes(encoding)), timestamp));
+						new Column(ByteBuffer.wrap(getCassandraParameters().getProcessedAtColumnName().getBytes(encoding)),
+								ByteBuffer.wrap(serialize(fetchTime.getBytes(encoding))), timestamp));
 			}
 
 			// Write the Crawl Request to the Put object
 			if (recordingOutputStream.getSize() > 0) {
 				columnList.add(
-						new Column(getCassandraParameters().getRequestColumnName().getBytes(encoding),
-								serialize(getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(),
-										(int)recordingOutputStream.getSize())), timestamp));
+						new Column(ByteBuffer.wrap(getCassandraParameters().getRequestColumnName().getBytes(encoding)),
+								ByteBuffer.wrap(serialize(getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(),
+										(int)recordingOutputStream.getSize()))), timestamp));
 			}
 
 			// Write the Crawl Response to the Put object
@@ -153,9 +156,9 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 			try {
 				// add the raw content to the table record
 				columnList.add(
-						new Column(getCassandraParameters().getContentColumnName().getBytes(encoding),
-								serialize(getByteArrayFromInputStream(replayInputStream,
-										(int) recordingInputStream.getSize())), timestamp));
+						new Column(ByteBuffer.wrap(getCassandraParameters().getContentColumnName().getBytes(encoding)),
+								ByteBuffer.wrap(serialize(getByteArrayFromInputStream(replayInputStream,
+										(int) recordingInputStream.getSize()))), timestamp));
 
 				// reset the input steam for the content processor
 				replayInputStream = recordingInputStream.getReplayInputStream();
@@ -172,13 +175,13 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 			Map<String, List<Mutation>> mutationsForColumnFamily = new HashMap<String, List<Mutation>>();
 			mutationsForColumnFamily.put(getCassandraParameters().getCrawlColumnFamily(), mutations);
 
-			Map<String, Map<String, List<Mutation>>> job = new HashMap<String, Map<String, List<Mutation>>>();
-			job.put(key, mutationsForColumnFamily);
+			Map<ByteBuffer, Map<String, List<Mutation>>> job = new HashMap<ByteBuffer, Map<String, List<Mutation>>>();
+			job.put(ByteBuffer.wrap(key.getBytes(encoding)), mutationsForColumnFamily);
 
 			// Submitting the writes to the Cassandra client
 			while (true) {
 				try {
-					this._connection.getClient().batch_mutate(getCassandraParameters().getKeyspace(), job, ConsistencyLevel.ONE);
+					this._connection.getClient().batch_mutate(job, ConsistencyLevel.ONE);
 					break;
 				} catch (Exception e) {
 					IOException ex = new IOException("The following exception was encountered while " +
@@ -188,6 +191,11 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 					try {
 						this._connection.connect();
 					} catch (TTransportException e1) {
+						LOG.error(e1.getMessage());
+					} catch (InvalidRequestException e1) {
+						LOG.error(e1.getMessage());
+					} catch (TException e1) {
+						LOG.error(e1.getMessage());
 					}
 					Thread.sleep(5000);
 				}

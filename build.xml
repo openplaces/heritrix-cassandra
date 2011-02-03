@@ -2,11 +2,11 @@
 <project basedir="." default="jar" name="heritrix-cassandra">
 
     <!-- heritrix-cassandra version -->
-    <property name="version" value="0.7" />
+    <property name="version" value="0.8" />
 
     <!-- Modify the version numbers of Cassandra and Heritrix
           here if you want to build against different versions -->
-    <property name="cassandra-version" value="0.6.5" />
+    <property name="cassandra-version" value="0.7.0" />
     <property name="heritrix-version" value="3.0.1-snapshot" />
     <!-- After modifying the version number, don't forget to add
           the dependent jar files in the corresponding
