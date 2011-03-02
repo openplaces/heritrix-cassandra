@@ -44,7 +44,7 @@ Getting Started
     <bean id="cassandraWriterProcessor" class="org.archive.modules.writer.CassandraWriterProcessor">
       <property name="cassandraParameters">
         <!-- Referencing the named bean we defined above -->
-        <bean ref="cassandraParameters" />
+        <ref bean="cassandraParameters" />
       </property>
     </bean>
 
