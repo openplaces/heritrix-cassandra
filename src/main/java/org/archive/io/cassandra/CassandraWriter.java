@@ -51,8 +51,7 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 
 	public CassandraWriter(Connection connection, CassandraParameters parameters)
 	throws IOException, TTransportException {
-
-		super(null, null, null, false, null);
+		super(null, null, null);
 
 		this._cassandraParameters = parameters;
 		this._connection = connection;
