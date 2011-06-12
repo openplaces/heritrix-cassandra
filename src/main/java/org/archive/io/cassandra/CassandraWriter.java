@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.ColumnOrSuperColumn;
@@ -23,6 +24,7 @@ import org.archive.io.RecordingInputStream;
 import org.archive.io.RecordingOutputStream;
 import org.archive.io.ReplayInputStream;
 import org.archive.io.WriterPoolMember;
+import org.archive.io.WriterPoolSettings;
 import org.archive.modules.CrawlURI;
 import org.archive.util.ArchiveUtils;
 
@@ -49,9 +51,10 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 		return _connection;
 	}
 
-	public CassandraWriter(Connection connection, CassandraParameters parameters)
+	public CassandraWriter(final AtomicInteger serial, final WriterPoolSettings settings,
+	        Connection connection, CassandraParameters parameters)
 	throws IOException, TTransportException {
-		super(null, null, null);
+	    super(serial, settings, "");
 
 		this._cassandraParameters = parameters;
 		this._connection = connection;
@@ -72,7 +75,7 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 	public void write(final CrawlURI curi, final String ip, final RecordingOutputStream recordingOutputStream,
 			final RecordingInputStream recordingInputStream) throws IOException, InterruptedException {
 
-		// Generate the target url of the crawled document
+	    // Generate the target url of the crawled document
 		String url = curi.toString();
 
 		// Create the key (reverse url)
@@ -99,7 +102,7 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 			if (LOG.isDebugEnabled())
 				LOG.debug("Writing " + url + " as " + key);
 
-			// The timestmap is the curi fetch time in microseconds
+			// The timestamp is the curi fetch time in microseconds
 			long timestamp = curi.getFetchBeginTime()*1000;
 
 			// Stores all the columns
@@ -144,27 +147,53 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 
 			// Write the Crawl Request to the Put object
 			if (recordingOutputStream.getSize() > 0) {
+			    String crawlRequest = getEncodedStringFromInputStream(recordingOutputStream.getReplayInputStream(),
+                        (int) recordingInputStream.getSize(), curi);
+
 				columnList.add(
 						new Column(ByteBuffer.wrap(getCassandraParameters().getRequestColumnName().getBytes(encoding)),
-								ByteBuffer.wrap(serialize(getByteArrayFromInputStream(recordingOutputStream.getReplayInputStream(),
-										(int)recordingOutputStream.getSize()))), timestamp));
+								ByteBuffer.wrap(serialize(crawlRequest.getBytes(encoding))), timestamp));
 			}
 
 			// Write the Crawl Response to the Put object
 			ReplayInputStream replayInputStream = recordingInputStream.getReplayInputStream();
 			try {
+			    // Read in the response fully into a byte array
+			    String crawlResponse = getEncodedStringFromInputStream(replayInputStream, (int) recordingInputStream.getSize(), curi);
+
+                // reset the input steam for the content processor
+                replayInputStream = recordingInputStream.getReplayInputStream();
+                replayInputStream.setToResponseBodyStart();
+
+			    // If it's configured, try to separate the HTTP response headers and store them in another column
+			    if (getCassandraParameters().isSeparateHeaders()) {
+			        int contentIndex = getContentIndex(crawlResponse);
+			        if (contentIndex != -1) {
+			            String headers = crawlResponse.substring(0, contentIndex);
+
+			            columnList.add(
+		                        new Column(ByteBuffer.wrap(getCassandraParameters().getHeadersColumnName().getBytes(encoding)),
+		                                ByteBuffer.wrap(serialize(headers.getBytes(encoding))), timestamp));
+
+			            crawlResponse = crawlResponse.substring(contentIndex);
+			        }
+			    }
+
+			    int maxSize = getCassandraParameters().getMaximumContentSize();
+			    if (maxSize > 0 && crawlResponse.length() > maxSize) {
+			        if (LOG.isDebugEnabled())
+			            LOG.debug("Skipping write of '" + url + "' because it exceeded the defined max size of " + maxSize);
+			        return;
+			    }
+
 				// add the raw content to the table record
 				columnList.add(
 						new Column(ByteBuffer.wrap(getCassandraParameters().getContentColumnName().getBytes(encoding)),
-								ByteBuffer.wrap(serialize(getByteArrayFromInputStream(replayInputStream,
-										(int) recordingInputStream.getSize()))), timestamp));
-
-				// reset the input steam for the content processor
-				replayInputStream = recordingInputStream.getReplayInputStream();
-				replayInputStream.setToResponseBodyStart();
+								ByteBuffer.wrap(serialize(crawlResponse.getBytes(encoding))), timestamp));
 			} finally {
 				closeStream(replayInputStream);
 			}
+
 
 			// Wrapping everything up and writing to Cassandra
 
@@ -228,23 +257,28 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 	 *
 	 * @param replayInputStream the ris the cell data as a replay input stream
 	 * @param streamSize the size
+	 * @param curi The {@link CrawlURI} object associated to the given stream. Used to return the byte array in
+	 * its proper encoding.
+	 * @param encoding Destination encoding
 	 *
 	 * @return the byte array from input stream
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	protected byte[] getByteArrayFromInputStream(final ReplayInputStream replayInputStream, final int streamSize)
-	throws IOException {
+	protected String getEncodedStringFromInputStream(final ReplayInputStream replayInputStream, final int streamSize,
+	        final CrawlURI curi) throws IOException {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(streamSize);
 		try {
-			// read the InputStream to the ByteArrayOutputStream
 			replayInputStream.readFullyTo(baos);
 		} finally {
 			replayInputStream.close();
 		}
 		baos.close();
-		return baos.toByteArray();
+
+		// Using the byte array and encoding information from the HTTP recorder, reconstruct the string in its
+        // native encoding so that we can convert it properly.
+		return new String(baos.toByteArray(), curi.getRecorder().getCharset());
 	}
 
 	protected void closeStream(Closeable c) {
@@ -272,4 +306,20 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
 	public static long microseconds(long milliseconds) {
 		return milliseconds * 1000; // convert milliseconds to microseconds
 	}
+
+	/**
+     * Get the index (within the string) of the start of the html contents, right after the HTTP response headers.
+     * Uses a pretty simple approach of looking for the &lt;!DOCTYPE&gt; or &lt;HTML&gt; tags.
+     *
+     * @param content
+     * @return the index of the start of the contents if found, or -1 otherwise.
+     */
+    public static int getContentIndex(String content) {
+        if (content == null) return -1;
+        int tag = content.indexOf("<!DOCTYPE");
+        if (tag == -1) tag = content.indexOf("<html");
+        if (tag == -1) tag = content.indexOf("<HTML");
+
+        return tag;
+    }
 }

@@ -39,9 +39,11 @@ public class CassandraParameters {
 	public static final String ENCODING_SCHEME = "UTF-8";
 	public static final boolean FRAMED_TRANSPORT = false;
 	public static final boolean REMOVE_MISSING_PAGES = false;
+	public static final int MAXIMUM_CONTENT_SIZE = -1; // Defaults to -1 for unlimited
 
 	// "content" logical grouping
 	public static final String CONTENT_PREFIX = "content";
+	public static final String HEADERS_COLUMN_NAME = "headers";
 	public static final String CONTENT_COLUMN_NAME = "raw_data";
 
 	// "curi" logical grouping
@@ -64,8 +66,11 @@ public class CassandraParameters {
 	private String encodingScheme = ENCODING_SCHEME;
 	private boolean framedTransport = FRAMED_TRANSPORT;
 	private boolean removeMissingPages = REMOVE_MISSING_PAGES;
+	private int maximumContentSize = MAXIMUM_CONTENT_SIZE;
 
-	private String contentPrefix = CONTENT_PREFIX;
+    private String contentPrefix = CONTENT_PREFIX;
+	private boolean separateHeaders = false;
+    private String headersColumnName = contentPrefix + ":" + HEADERS_COLUMN_NAME;
 	private String contentColumnName = contentPrefix + ":" + CONTENT_COLUMN_NAME;
 
 	private String curiPrefix = CURI_PREFIX;
@@ -109,6 +114,12 @@ public class CassandraParameters {
 	public void setKeyspace(String keyspace) {
 		this.keyspace = keyspace;
 	}
+	public int getMaximumContentSize() {
+	    return maximumContentSize;
+	}
+	public void setMaximumContentSize(int maximumContentSize) {
+	    this.maximumContentSize = maximumContentSize;
+	}
 	public String getCrawlColumnFamily() {
 		return crawlColumnFamily;
 	}
@@ -139,6 +150,18 @@ public class CassandraParameters {
 	public void setContentPrefix(String contentPrefix) {
 		this.contentPrefix = contentPrefix;
 	}
+	public boolean isSeparateHeaders() {
+        return separateHeaders;
+    }
+    public void setSeparateHeaders(boolean separateHeaders) {
+        this.separateHeaders = separateHeaders;
+    }
+	public String getHeadersColumnName() {
+        return headersColumnName;
+    }
+    public void setHeadersColumnName(String headersColumnName) {
+        this.headersColumnName = headersColumnName;
+    }
 	public String getContentColumnName() {
 		return contentColumnName;
 	}

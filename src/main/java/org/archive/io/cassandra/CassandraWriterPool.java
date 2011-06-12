@@ -93,7 +93,7 @@ public class CassandraWriterPool extends WriterPool {
 		try {
 			String head = getEndPoints().removeFirst();
 			getEndPoints().addLast(head); // Move to the end of the list
-			return (WriterPoolMember)new CassandraWriter(
+			return (WriterPoolMember)new CassandraWriter(getSerialNo(), getSettings(),
 					new Connection(head, _parameters.getPort(), _parameters.getKeyspace()), _parameters);
 		} catch (TTransportException e) {
 			LOG.error(e.getMessage());

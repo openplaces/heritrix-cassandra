@@ -7,3 +7,5 @@
 /build
 /.gradle
 .DS_Store
+adhoc.keystore
+heritrix_dmesg.log

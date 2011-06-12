@@ -83,6 +83,8 @@ contentPrefix		content 	Name of the logical prefix used to save the raw content 
 
 contentColumnName 	raw_data 	Name of the column used to save the raw content to.
 
+headersColumnName	headers		Name of the column used to save the headers to (if separateHeaders is set to true).
+
 curiPrefix		curi 		Name of the logical prefix used to store the metadata related to the crawl. If any of the following parameters are redefined, then this prefix will be overridden and no longer used with it.
 
 ipColumnName 		ip 		Name of the column used to save the resolved ip to.
@@ -96,6 +98,10 @@ viaColumnName 		via 		Name of the column used to store the via information.
 urlColumnName 		url		Name of the column used to store the url.
 
 requestColumnName 	request		Name of the column used to store the request header.
+
+separateHeaders		false		Separate the HTTP response headers from the content.
+
+maximumContentSize	-1		Maximum size of the content string that will be saved. Anything larger will just not write to Cassandra. -1 indicates unlimited size.
 ======================  =============== =========
 
 
