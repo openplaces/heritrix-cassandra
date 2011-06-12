@@ -317,6 +317,7 @@ public class CassandraWriter extends WriterPoolMember implements Serializer {
     public static int getContentIndex(String content) {
         if (content == null) return -1;
         int tag = content.indexOf("<!DOCTYPE");
+        if (tag == -1) tag = content.indexOf("<!doctype");
         if (tag == -1) tag = content.indexOf("<html");
         if (tag == -1) tag = content.indexOf("<HTML");
 

@@ -1,5 +1,5 @@
 // Heritrix-Cassandra version
-version = '0.8'
+version = '0.8.1'
 
 // Modify these values if you want to build against different versions of Heritrix or Cassandra
 heritrix_version = '3.1.0-SNAPSHOT'
